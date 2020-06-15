@@ -4,11 +4,14 @@ import (
 	"../../config"
 	"context"
 	"database/sql"
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 )
 
 type Pegnet struct {
@@ -27,9 +30,9 @@ func New(conf *viper.Viper) *Pegnet {
 func (p *Pegnet) Init() error {
 	// The path should contain a $HOME env variable.
 	rawpath := p.Config.GetString(config.SqliteDBPath)
-	//if runtime.GOOS == "windows" {
-	//	rawpath = strings.Replace(rawpath, "$HOME", "$USERPROFILE", -1)
-	//}
+	if runtime.GOOS == "windows" {
+		rawpath = strings.Replace(rawpath, "$HOME", "$USERPROFILE", -1)
+	}
 	path := os.ExpandEnv(rawpath)
 	// TODO: Come up with actual migrations.
 	// 		until then, we can just bump this version number
@@ -67,29 +70,29 @@ func (p *Pegnet) Init() error {
 }
 
 func (p *Pegnet) createTables() error {
-	//for _, sql := range []string{
-	//	createTableAddresses,
-	//	createTableGrade,
-	//	createTableRate,
-	//	createTableMetadata,
-	//	createTableWinners,
-	//	createTableTransactions,
-	//	createTableTransactionBatchHolding,
-	//	createTableTxHistoryBatch,
-	//	createTableTxHistoryTx,
-	//	createTableTxHistoryLookup,
-	//	createTableSyncVersion,
-	//	createTableBank,
-	//} {
-	//	if _, err := p.DB.Exec(sql); err != nil {
-	//		return fmt.Errorf("createTables: %v", err)
-	//	}
-	//}
-	//
-	//err := p.migrations()
-	//if err != nil {
-	//	return fmt.Errorf("migrations: %v", err)
-	//}
+	for _, sql := range []string{
+		createTableAddresses,
+		createTableGrade,
+		createTableRate,
+		createTableMetadata,
+		createTableWinners,
+		createTableTransactions,
+		createTableTransactionBatchHolding,
+		createTableTxHistoryBatch,
+		createTableTxHistoryTx,
+		createTableTxHistoryLookup,
+		createTableSyncVersion,
+		createTableBank,
+	} {
+		if _, err := p.DB.Exec(sql); err != nil {
+			return fmt.Errorf("createTables: %v", err)
+		}
+	}
+
+	err := p.migrations()
+	if err != nil {
+		return fmt.Errorf("migrations: %v", err)
+	}
 	return nil
 }
 

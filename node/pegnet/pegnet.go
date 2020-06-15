@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
-	"runtime"
 )
 
 type Pegnet struct {
@@ -27,9 +26,9 @@ func New(conf *viper.Viper) *Pegnet {
 func (p *Pegnet) Init() error {
 	// The path should contain a $HOME env variable.
 	rawpath := p.Config.GetString(config.SqliteDBPath)
-	if runtime.GOOS == "windows" {
-		rawpath = strings.Replace(rawpath, "$HOME", "$USERPROFILE", -1)
-	}
+	//if runtime.GOOS == "windows" {
+	//	rawpath = strings.Replace(rawpath, "$HOME", "$USERPROFILE", -1)
+	//}
 	path := os.ExpandEnv(rawpath)
 	// TODO: Come up with actual migrations.
 	// 		until then, we can just bump this version number
@@ -56,6 +55,7 @@ func (p *Pegnet) Init() error {
 	log.Infof("Opening database from '%s'", path)
 	db, err := sql.Open("sqlite3", openmode)
 	if err != nil {
+		log.Infof("%%%%%%%%%", openmode, err)
 		return err
 	}
 	p.DB = db

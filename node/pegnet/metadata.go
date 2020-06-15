@@ -1,5 +1,11 @@
 package pegnet
 
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+)
+
 const createTableMetadata = `CREATE TABLE IF NOT EXISTS "pn_metadata" (
 	"name" TEXT NOT NULL,
 	"value" BLOB,
@@ -12,19 +18,19 @@ type BlockSync struct {
 	Synced uint32
 }
 
-/*
 func (p *Pegnet) InsertSynced(tx *sql.Tx, bs *BlockSync) error {
 	data, err := json.Marshal(bs)
 	if err != nil {
 		return err
 	}
-
-	// Since this is called for every height, we also can mark the height
-	// synced for version checking
-	err = p.MarkHeightSynced(tx, bs.Synced)
-	if err != nil {
-		return err
-	}
+	/*
+		// Since this is called for every height, we also can mark the height
+		// synced for version checking
+		err = p.MarkHeightSynced(tx, bs.Synced)
+		if err != nil {
+			return err
+		}
+	*/
 
 	_, err = tx.Exec("REPLACE INTO pn_metadata (name, value) VALUES ($1, $2)", "synced", data)
 	if err != nil {
@@ -50,4 +56,3 @@ func (Pegnet) SelectSynced(ctx context.Context, tx QueryAble) (*BlockSync, error
 
 	return bs, nil
 }
-*/

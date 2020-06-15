@@ -2,20 +2,18 @@ package node
 
 import (
 	"context"
-	//"database/sql"
-	"fmt"
+	"database/sql"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/Factom-Asset-Tokens/factom"
 	"github.com/dragonheaven/pegnet-stakingd/config"
 	"github.com/dragonheaven/pegnet-stakingd/node/pegnet"
 	"github.com/pegnet/pegnet/modules/grader"
-
-	//log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 var (
-//PegnetActivation uint32 = 206421
+	PegnetActivation uint32 = 206421
 )
 
 type Pegnetd struct {
@@ -32,25 +30,23 @@ func NewPegnetStakingd(ctx context.Context, conf *viper.Viper) (*Pegnetd, error)
 	n.FactomClient = FactomClientFromConfig(conf)
 	n.Config = conf
 
-	fmt.Println("NewPegnetStakingd")
-	/*
-		n.Pegnet = pegnet.New(conf)
-		if err := n.Pegnet.Init(); err != nil {
+	n.Pegnet = pegnet.New(conf)
+	if err := n.Pegnet.Init(); err != nil {
+		return nil, err
+	}
+
+	if sync, err := n.Pegnet.SelectSynced(ctx, n.Pegnet.DB); err != nil {
+		if err == sql.ErrNoRows {
+			n.Sync = new(pegnet.BlockSync)
+			n.Sync.Synced = PegnetActivation
+			log.Debug("connected to a fresh database")
+		} else {
 			return nil, err
 		}
-
-		if sync, err := n.Pegnet.SelectSynced(ctx, n.Pegnet.DB); err != nil {
-			if err == sql.ErrNoRows {
-				n.Sync = new(pegnet.BlockSync)
-				n.Sync.Synced = PegnetActivation
-				log.Debug("connected to a fresh database")
-			} else {
-				return nil, err
-			}
-		} else {
-			n.Sync = sync
-		}
-
+	} else {
+		n.Sync = sync
+	}
+	/*
 		err := n.Pegnet.CheckHardForks(n.Pegnet.DB)
 		if err != nil {
 			err = fmt.Errorf("pegnetd database hardfork check failed: %s", err.Error())
@@ -59,7 +55,8 @@ func NewPegnetStakingd(ctx context.Context, conf *viper.Viper) (*Pegnetd, error)
 			} else {
 				return nil, err
 			}
-		}*/
+		}
+	*/
 
 	grader.InitLX()
 	return n, nil

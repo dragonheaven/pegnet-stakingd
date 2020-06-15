@@ -4,7 +4,6 @@ import (
 	"../config"
 	"../exit"
 	"../node"
-	"../srv"
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -34,9 +33,6 @@ var rootCmd = &cobra.Command{
 			log.WithError(err).Errorf("failed to launch pegnet staking node")
 			os.Exit(1)
 		}
-
-		apiserver := srv.NewAPIServer(conf, node)
-		go apiserver.Start(ctx.Done())
 
 		// Run
 		node.DBlockSync(ctx)

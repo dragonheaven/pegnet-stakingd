@@ -1,7 +1,6 @@
 package main
 
-//import "github.com/dragonheaven/pegnet-stakingd/cmd"
-import "./cmd"
+import "github.com/dragonheaven/pegnet-stakingd/cmd"
 
 func main() {
 	cmd.Execute()

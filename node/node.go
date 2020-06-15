@@ -26,7 +26,7 @@ type Pegnetd struct {
 	Pegnet *pegnet.Pegnet
 }
 
-func NewPegnetd(ctx context.Context, conf *viper.Viper) (*Pegnetd, error) {
+func NewPegnetStakingd(ctx context.Context, conf *viper.Viper) (*Pegnetd, error) {
 	// TODO : Update emyrk's factom library
 	n := new(Pegnetd)
 	n.FactomClient = FactomClientFromConfig(conf)

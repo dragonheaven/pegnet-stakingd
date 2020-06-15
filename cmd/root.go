@@ -46,7 +46,7 @@ var rootCmd = &cobra.Command{
 
 		// Get the config
 		conf := viper.GetViper()
-		node, err := node.NewPegnetd(ctx, conf)
+		node, err := node.NewPegnetStakingd(ctx, conf)
 		if err != nil {
 			log.WithError(err).Errorf("failed to launch pegnet staking node")
 			os.Exit(1)

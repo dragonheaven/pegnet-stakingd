@@ -16,9 +16,10 @@ limitations under the License.
 package cmd
 
 import (
-	//"context"
+	"context"
 	"fmt"
 	"github.com/dragonheaven/pegnet-stakingd/exit"
+	"github.com/dragonheaven/pegnet-stakingd/node"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -39,19 +40,20 @@ var rootCmd = &cobra.Command{
 	PreRun:           ReadConfig,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Hello Staking!!!!")
+		// Handle ctl+c
+		ctx, cancel := context.WithCancel(context.Background())
+		exit.GlobalExitHandler.AddCancel(cancel)
+
+		// Get the config
+		conf := viper.GetViper()
+		node, err := node.NewPegnetd(ctx, conf)
+		if err != nil {
+			log.WithError(err).Errorf("failed to launch pegnet staking node")
+			os.Exit(1)
+		}
+		fmt.Println(node)
+
 		/*
-			// Handle ctl+c
-			ctx, cancel := context.WithCancel(context.Background())
-			exit.GlobalExitHandler.AddCancel(cancel)
-
-			// Get the config
-			conf := viper.GetViper()
-			node, err := node.NewPegnetd(ctx, conf)
-			if err != nil {
-				log.WithError(err).Errorf("failed to launch pegnet node")
-				os.Exit(1)
-			}
-
 			apiserver := srv.NewAPIServer(conf, node)
 			go apiserver.Start(ctx.Done())
 

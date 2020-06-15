@@ -16,15 +16,16 @@ limitations under the License.
 package cmd
 
 import (
-	"context"
+	//"context"
 	"fmt"
 	"github.com/spf13/cobra"
-	"os"
-
-	"github.com/dragonheaven/pegnet-stakingd/exit"
-	homedir "github.com/mitchellh/go-homedir"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"os"
+	"time"
+
+	"github.com/dragonheaven/pegnet-stakingd/config"
+	"github.com/dragonheaven/pegnet-stakingd/exit"
+	log "github.com/sirupsen/logrus"
 )
 
 var cfgFile string
@@ -35,23 +36,26 @@ var rootCmd = &cobra.Command{
 	PersistentPreRun: always,
 	PreRun:           ReadConfig,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Handle ctl+c
-		ctx, cancel := context.WithCancel(context.Background())
-		exit.GlobalExitHandler.AddCancel(cancel)
+		fmt.Println("Hello Staking!!!!")
+		/*
+			// Handle ctl+c
+			ctx, cancel := context.WithCancel(context.Background())
+			exit.GlobalExitHandler.AddCancel(cancel)
 
-		// Get the config
-		conf := viper.GetViper()
-		node, err := node.NewPegnetd(ctx, conf)
-		if err != nil {
-			log.WithError(err).Errorf("failed to launch pegnet node")
-			os.Exit(1)
-		}
+			// Get the config
+			conf := viper.GetViper()
+			node, err := node.NewPegnetd(ctx, conf)
+			if err != nil {
+				log.WithError(err).Errorf("failed to launch pegnet node")
+				os.Exit(1)
+			}
 
-		apiserver := srv.NewAPIServer(conf, node)
-		go apiserver.Start(ctx.Done())
+			apiserver := srv.NewAPIServer(conf, node)
+			go apiserver.Start(ctx.Done())
 
-		// Run
-		node.DBlockSync(ctx)
+			// Run
+			node.DBlockSync(ctx)
+		*/
 	},
 }
 
@@ -64,42 +68,27 @@ func Execute() {
 	}
 }
 
-func init() {
-	cobra.OnInitialize(initConfig)
+// always is run before any command
+func always(cmd *cobra.Command, args []string) {
+	log.Infof("always is called")
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	// Setup config reading
+	viper.SetConfigName("pegnet-stakingd-conf")
+	// Add as many config paths as we want to check
+	viper.AddConfigPath("$HOME/.pegnet-stakingd")
+	viper.AddConfigPath(".")
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.newApp.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// Also init some defaults
+	viper.SetDefault(config.DBlockSyncRetryPeriod, time.Second*5)
+	viper.SetDefault(config.SqliteDBPath, "$HOME/.pegnet-stakingd/mainnet/sql.db")
 }
 
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+// ReadConfig can be put as a PreRun for a command that uses the config file
+func ReadConfig(cmd *cobra.Command, args []string) {
+	log.Infof("ReadConfig is called")
+}
 
-		// Search config in home directory with name ".newApp" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".newApp")
-	}
-
-	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
+func init() {
+	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.newApp.yaml)")
+	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -1,9 +1,10 @@
 package pegnet
 
 import (
+	"../../config"
 	"context"
 	"database/sql"
-	"github.com/dragonheaven/pegnet-stakingd/config"
+	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os"
@@ -53,10 +54,8 @@ func (p *Pegnet) Init() error {
 	}
 
 	log.Infof("Opening database from '%s'", path)
-	log.Infof("openmode:'%s'", openmode)
 	db, err := sql.Open("sqlite3", openmode)
 	if err != nil {
-		log.Infof("%%%%%%%%%", openmode, err)
 		return err
 	}
 	p.DB = db

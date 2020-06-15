@@ -1,7 +1,7 @@
 # pegnet-stakingd config file
 [app]
   loglevel = "info"
-  apilisten = "8070"
+  apilisten = "8071"
   # Hardcoding the mainnet path, but allowing for future net support
   dbpath   = "$HOME/.pegnet-stakingd/mainnet/node.db"
 

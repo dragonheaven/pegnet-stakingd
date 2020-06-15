@@ -53,6 +53,7 @@ func (p *Pegnet) Init() error {
 	}
 
 	log.Infof("Opening database from '%s'", path)
+	log.Infof("openmode:'%s'", openmode)
 	db, err := sql.Open("sqlite3", openmode)
 	if err != nil {
 		log.Infof("%%%%%%%%%", openmode, err)

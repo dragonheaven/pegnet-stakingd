@@ -16,29 +16,43 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
 
+	"github.com/dragonheaven/pegnet-stakingd/exit"
 	homedir "github.com/mitchellh/go-homedir"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 var cfgFile string
 
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "newApp",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Use:              "pegnet-stakingd",
+	Short:            "pegnet-stakingd is the pegnet staking daemon to track balances and SPRs",
+	PersistentPreRun: always,
+	PreRun:           ReadConfig,
+	Run: func(cmd *cobra.Command, args []string) {
+		// Handle ctl+c
+		ctx, cancel := context.WithCancel(context.Background())
+		exit.GlobalExitHandler.AddCancel(cancel)
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+		// Get the config
+		conf := viper.GetViper()
+		node, err := node.NewPegnetd(ctx, conf)
+		if err != nil {
+			log.WithError(err).Errorf("failed to launch pegnet node")
+			os.Exit(1)
+		}
+
+		apiserver := srv.NewAPIServer(conf, node)
+		go apiserver.Start(ctx.Done())
+
+		// Run
+		node.DBlockSync(ctx)
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

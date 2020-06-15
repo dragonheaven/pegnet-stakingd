@@ -1,18 +1,3 @@
-/*
-Copyright © 2020 NAME HERE <EMAIL ADDRESS>
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
@@ -30,8 +15,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 )
-
-var cfgFile string
 
 var rootCmd = &cobra.Command{
 	Use:              "pegnet-stakingd",
@@ -74,8 +57,6 @@ func Execute() {
 
 // always is run before any command
 func always(cmd *cobra.Command, args []string) {
-	log.Infof("always is called")
-
 	// Setup config reading
 	viper.SetConfigName("pegnet-stakingd-conf")
 	// Add as many config paths as we want to check
@@ -102,8 +83,6 @@ func always(cmd *cobra.Command, args []string) {
 
 // ReadConfig can be put as a PreRun for a command that uses the config file
 func ReadConfig(cmd *cobra.Command, args []string) {
-	log.Infof("ReadConfig is called")
-
 	err := viper.ReadInConfig()
 	// If no config is found, we will attempt to make one
 	if _, ok := err.(viper.ConfigFileNotFoundError); ok {

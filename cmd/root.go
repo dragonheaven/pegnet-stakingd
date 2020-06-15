@@ -4,6 +4,7 @@ import (
 	"../config"
 	"../exit"
 	"../node"
+	"../srv"
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -22,7 +23,6 @@ var rootCmd = &cobra.Command{
 	PersistentPreRun: always,
 	PreRun:           ReadConfig,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Hello Staking!!!!")
 		// Handle ctl+c
 		ctx, cancel := context.WithCancel(context.Background())
 		exit.GlobalExitHandler.AddCancel(cancel)
@@ -34,15 +34,12 @@ var rootCmd = &cobra.Command{
 			log.WithError(err).Errorf("failed to launch pegnet staking node")
 			os.Exit(1)
 		}
-		fmt.Println(node)
 
-		/*
-			apiserver := srv.NewAPIServer(conf, node)
-			go apiserver.Start(ctx.Done())
+		apiserver := srv.NewAPIServer(conf, node)
+		go apiserver.Start(ctx.Done())
 
-			// Run
-			node.DBlockSync(ctx)
-		*/
+		// Run
+		node.DBlockSync(ctx)
 	},
 }
 

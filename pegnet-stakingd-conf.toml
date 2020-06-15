@@ -1,0 +1,15 @@
+# pegnet-stakingd config file
+[app]
+  loglevel = "info"
+  apilisten = "8070"
+  # Hardcoding the mainnet path, but allowing for future net support
+  dbpath   = "$HOME/.pegnet-stakingd/mainnet/node.db"
+
+  pegnet-stakingd = "http://localhost:8071"
+  server = "https://api.factomd.net/v2"
+  wallet = "http://localhost:8089/v2"
+  walletUser = ""
+  walletPass = ""
+
+[dblocksync]
+  retry = "5s"

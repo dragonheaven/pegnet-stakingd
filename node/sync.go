@@ -189,6 +189,11 @@ func (d *Pegnetd) SyncBlock(ctx context.Context, tx *sql.Tx, height uint32) erro
 	if gradedBlock != nil {
 		// Todo: Update the DB here
 		fmt.Println("hello, block is graded")
+
+		err = d.Pegnet.InsertGradeBlock(tx, oprEBlock, gradedBlock)
+		if err != nil {
+			return err
+		}
 	} else {
 		fLog.WithFields(log.Fields{"section": "grading", "reason": "no graded block"}).Tracef("block not graded")
 	}

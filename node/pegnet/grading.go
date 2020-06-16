@@ -2,7 +2,13 @@ package pegnet
 
 import (
 	"context"
+	"database/sql"
+	"encoding/binary"
 	"encoding/json"
+	"fmt"
+
+	"github.com/Factom-Asset-Tokens/factom"
+	"github.com/pegnet/pegnet/modules/grader"
 )
 
 const createTableGrade = `CREATE TABLE IF NOT EXISTS "pn_grade" (
@@ -56,4 +62,31 @@ func (p *Pegnet) SelectPreviousWinners(ctx context.Context, height uint32) ([]st
 	}
 
 	return winners, nil
+}
+
+func (p *Pegnet) InsertGradeBlock(tx *sql.Tx, eblock *factom.EBlock, graded grader.GradedBlock) error {
+	data, err := json.Marshal(graded.WinnersShortHashes())
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec("INSERT INTO pn_grade (height, keymr, prevkeymr, eb_seq, shorthashes, version, cutoff, count) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+		eblock.Height, eblock.KeyMR[:], eblock.PrevKeyMR[:], eblock.Sequence, data, graded.Version(), graded.Cutoff(), graded.Count())
+	if err != nil {
+		return err
+	}
+
+	// No winners? Then don't insert
+	if len(graded.Winners()) > 0 {
+		for _, o := range graded.Graded() {
+			diff := make([]byte, 8)
+			binary.BigEndian.PutUint64(diff, o.SelfReportedDifficulty)
+			_, err = tx.Exec(`INSERT INTO pn_winners (height, entryhash, oprhash, payout, grade, nonce, difficulty, position, minerid, address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+				eblock.Height, o.EntryHash, o.OPRHash, o.Payout(), o.Grade, o.Nonce, diff, o.Position(), o.OPR.GetID(), o.OPR.GetAddress())
+			if err != nil {
+				return fmt.Errorf("ht %d, pos %d :%s", eblock.Height, o.Position(), err)
+			}
+		}
+	}
+
+	return nil
 }

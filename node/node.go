@@ -16,8 +16,20 @@ var (
 	OPRChain         = factom.NewBytes32("a642a8674f46696cc47fdb6b65f9c87b2a19c5ea8123b3d2f0c13b6f33a9d5ef")
 	TransactionChain = factom.NewBytes32("cffce0f409ebba4ed236d49d89c70e4bd1f1367d86402a3363366683265a242d")
 
-	// Acivation Heights
+	/**
+	 *	Activation Heights
+	 */
 	PegnetActivation uint32 = 206421
+
+	GradingV2Activation uint32 = 210330
+
+	// This is when PEG price is determined by the exchange price
+	// Estimated to be  Dec 9, 2019, 17:00 UTC
+	PEGFreeFloatingPriceActivation uint32 = 222270
+
+	// V4OPRUpdate indicates the activation of additional currencies and ecdsa keys.
+	// Estimated to be  Feb 12, 2020, 18:00 UTC
+	V4OPRUpdate uint32 = 231620
 )
 
 type Pegnetd struct {

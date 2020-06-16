@@ -155,7 +155,7 @@ OuterSyncLoop:
 // The context should be respected if it is cancelled
 func (d *Pegnetd) SyncBlock(ctx context.Context, tx *sql.Tx, height uint32) error {
 	fmt.Println("============================================================")
-	//fLog := log.WithFields(log.Fields{"height": height})
+	fLog := log.WithFields(log.Fields{"height": height})
 	if isDone(ctx) { // Just an example about how to handle it being cancelled
 		return context.Canceled
 	}
@@ -178,6 +178,18 @@ func (d *Pegnetd) SyncBlock(ctx context.Context, tx *sql.Tx, height uint32) erro
 		if err := multiFetch(transactionsEBlock, d.FactomClient); err != nil {
 			return err
 		}
+	}
+
+	// Then, grade the new OPR Block. The results of this will be used
+	// to execute conversions that are in holding.
+	gradedBlock, err := d.Grade(ctx, oprEBlock)
+	if err != nil {
+		return err
+	}
+	if gradedBlock != nil {
+		// Todo: Update the DB here
+	} else {
+		fLog.WithFields(log.Fields{"section": "grading", "reason": "no graded block"}).Tracef("block not graded")
 	}
 
 	return errors.New("Skip the SyncBlock")

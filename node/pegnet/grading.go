@@ -1,5 +1,10 @@
 package pegnet
 
+import (
+	"context"
+	"encoding/json"
+)
+
 const createTableGrade = `CREATE TABLE IF NOT EXISTS "pn_grade" (
 	"height" INTEGER PRIMARY KEY,
 	"keymr" BLOB,
@@ -36,3 +41,19 @@ const createTableRate = `CREATE TABLE IF NOT EXISTS "pn_rate" (
 	UNIQUE("height", "token")
 );
 `
+
+func (p *Pegnet) SelectPreviousWinners(ctx context.Context, height uint32) ([]string, error) {
+	var data []byte
+	err := p.DB.QueryRowContext(ctx, "SELECT shorthashes FROM pn_grade WHERE height < $1 ORDER BY height DESC LIMIT 1", height).Scan(&data)
+	if err != nil {
+		return nil, err
+	}
+
+	var winners []string
+	err = json.Unmarshal(data, &winners)
+	if err != nil {
+		return nil, err
+	}
+
+	return winners, nil
+}

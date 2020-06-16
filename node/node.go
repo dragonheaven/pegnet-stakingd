@@ -19,9 +19,29 @@ var (
 	/**
 	 *	Activation Heights
 	 */
-	PegnetActivation uint32 = 206421
+	// Acivation Heights
 
+	PegnetActivation    uint32 = 206421
 	GradingV2Activation uint32 = 210330
+
+	// TransactionConversionActivation indicates when tx/conversions go live on mainnet.
+	// Target Activation Height is Oct 7, 2019 15 UTC
+	TransactionConversionActivation uint32 = 213237
+
+	// This is when PEG is priced by the market cap equation
+	// Estimated to be Oct 14 2019, 15:00:00 UTC
+	PEGPricingActivation uint32 = 214287
+
+	// OneWaypFCTConversions makes pFCT a 1 way conversion. This means pFCT->pXXX,
+	// but no asset can go into pFCT. AKA pXXX -/> pFCT.
+	// The only way to aquire pFCT is to burn FCT. The burn command will remain.
+	// Estimated to be Nov 25, 2019 17:47:00 UTC
+	OneWaypFCTConversions uint32 = 220346
+
+	// Once this is activated, a maximum amount of PEG of 5,000 can be
+	// converted per block. At a future height, a dynamic bank should be used.
+	// Estimated to be  Dec 9, 2019, 17:00 UTC
+	PegnetConversionLimitActivation uint32 = 222270
 
 	// This is when PEG price is determined by the exchange price
 	// Estimated to be  Dec 9, 2019, 17:00 UTC

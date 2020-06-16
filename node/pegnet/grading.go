@@ -6,6 +6,9 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"github.com/pegnet/pegnet/modules/opr"
+	"github.com/pegnet/pegnetd/fat/fat2"
+	"math/big"
 
 	"github.com/Factom-Asset-Tokens/factom"
 	"github.com/pegnet/pegnet/modules/grader"
@@ -48,6 +51,23 @@ const createTableRate = `CREATE TABLE IF NOT EXISTS "pn_rate" (
 );
 `
 
+func (p *Pegnet) insertRate(tx *sql.Tx, height uint32, tickerString string, rate uint64) error {
+	_, err := tx.Exec("INSERT INTO pn_rate (height, token, value) VALUES ($1, $2, $3)", height, tickerString, rate)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type PEGPricingPhase int
+
+const (
+	_                  PEGPricingPhase = iota
+	PEGPriceIsZero                     // PEG == 0
+	PEGPriceIsEquation                 // PEG == MarketCap / Peg Supply
+	PEGPriceIsFloating                 // PEG == ExchRate
+)
+
 func (p *Pegnet) SelectPreviousWinners(ctx context.Context, height uint32) ([]string, error) {
 	var data []byte
 	err := p.DB.QueryRowContext(ctx, "SELECT shorthashes FROM pn_grade WHERE height < $1 ORDER BY height DESC LIMIT 1", height).Scan(&data)
@@ -88,5 +108,65 @@ func (p *Pegnet) InsertGradeBlock(tx *sql.Tx, eblock *factom.EBlock, graded grad
 		}
 	}
 
+	return nil
+}
+
+// InsertRates adds all asset rates as rows, computing the rate for PEG if necessary
+func (p *Pegnet) InsertRates(tx *sql.Tx, height uint32, rates []opr.AssetUint, phase PEGPricingPhase) error {
+	if phase == 0 {
+		return fmt.Errorf("undefined PEG phase")
+	}
+
+	ratePEG := new(big.Int)
+	for i := range rates {
+		if rates[i].Name == "PEG" {
+			ratePEG.SetUint64(rates[i].Value)
+			continue
+		}
+
+		// Correct rates to use `pAsset`
+		rates[i].Name = "p" + rates[i].Name
+
+		err := p.insertRate(tx, height, rates[i].Name, rates[i].Value)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Now to insert the PEG rate. All other rates are set above.
+	// The PEG rate depends on what activation phase we are in. There are
+	// multiple ways to set the PEG price.
+	switch phase {
+	case PEGPriceIsZero: // PEG Price is 0
+		ratePEG.SetUint64(0)
+	case PEGPriceIsEquation: // Market Cap Equation
+		// PEG price = (total capitalization of all other assets) / (total supply of all other assets at height - 1)
+		issuance, err := p.SelectIssuances()
+		if err != nil {
+			return err
+		}
+		totalCapitalization := new(big.Int)
+		for _, r := range rates {
+			if r.Name == "PEG" {
+				continue
+			}
+
+			assetCapitalization := new(big.Int).Mul(new(big.Int).SetUint64(issuance[fat2.StringToTicker(r.Name)]), new(big.Int).SetUint64(r.Value))
+			totalCapitalization.Add(totalCapitalization, assetCapitalization)
+		}
+		if issuance[fat2.PTickerPEG] == 0 {
+			// If there are no PEGs in the system, PEGs have no value (divide-by-zero)
+			// At least one block will have to be mined in order for PEGs to attain a value
+			ratePEG.SetUint64(0)
+		} else {
+			ratePEG.Div(totalCapitalization, new(big.Int).SetUint64(issuance[fat2.PTickerPEG]))
+		}
+	case PEGPriceIsFloating: // Rate in opr is the rate
+	}
+
+	err := p.insertRate(tx, height, fat2.PTickerPEG.String(), ratePEG.Uint64())
+	if err != nil {
+		return err
+	}
 	return nil
 }

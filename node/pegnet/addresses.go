@@ -1,5 +1,12 @@
 package pegnet
 
+import (
+	"database/sql"
+	"fmt"
+	"github.com/pegnet/pegnetd/fat/fat2"
+	"strings"
+)
+
 const createTableAddresses = `CREATE TABLE IF NOT EXISTS "pn_addresses" (
         "id"            INTEGER PRIMARY KEY,
         "address"       BLOB NOT NULL UNIQUE,
@@ -91,3 +98,75 @@ const createTableAddresses = `CREATE TABLE IF NOT EXISTS "pn_addresses" (
 );
 CREATE INDEX IF NOT EXISTS "idx_address_balances_address_id" ON "pn_addresses"("address");
 `
+
+func (p *Pegnet) SelectIssuances() (map[fat2.PTicker]uint64, error) {
+	issuanceMap := make(map[fat2.PTicker]uint64, int(fat2.PTickerMax))
+	for i := fat2.PTickerInvalid + 1; i < fat2.PTickerMax; i++ {
+		issuanceMap[i] = 0
+	}
+	// Can't make pointers of map elements, so a temporary array must be used
+	issuances := make([]uint64, int(fat2.PTickerMax))
+	queryFmt := `SELECT %v FROM pn_addresses`
+	var sb strings.Builder
+	for i := fat2.PTickerInvalid + 1; i < fat2.PTickerMax-1; i++ {
+		tickerLower := strings.ToLower(i.String())
+		sb.WriteString(fmt.Sprintf("IFNULL(SUM(%s_balance), 0), ", tickerLower))
+	}
+	tickerLower := strings.ToLower((fat2.PTickerMax - 1).String())
+	sb.WriteString(fmt.Sprintf("IFNULL(SUM(%s_balance), 0) ", tickerLower))
+	err := p.DB.QueryRow(fmt.Sprintf(queryFmt, sb.String())).Scan(
+		&issuances[fat2.PTickerPEG],
+		&issuances[fat2.PTickerUSD],
+		&issuances[fat2.PTickerEUR],
+		&issuances[fat2.PTickerJPY],
+		&issuances[fat2.PTickerGBP],
+		&issuances[fat2.PTickerCAD],
+		&issuances[fat2.PTickerCHF],
+		&issuances[fat2.PTickerINR],
+		&issuances[fat2.PTickerSGD],
+		&issuances[fat2.PTickerCNY],
+		&issuances[fat2.PTickerHKD],
+		&issuances[fat2.PTickerKRW],
+		&issuances[fat2.PTickerBRL],
+		&issuances[fat2.PTickerPHP],
+		&issuances[fat2.PTickerMXN],
+		&issuances[fat2.PTickerXAU],
+		&issuances[fat2.PTickerXAG],
+		&issuances[fat2.PTickerXBT],
+		&issuances[fat2.PTickerETH],
+		&issuances[fat2.PTickerLTC],
+		&issuances[fat2.PTickerRVN],
+		&issuances[fat2.PTickerXBC],
+		&issuances[fat2.PTickerFCT],
+		&issuances[fat2.PTickerBNB],
+		&issuances[fat2.PTickerXLM],
+		&issuances[fat2.PTickerADA],
+		&issuances[fat2.PTickerXMR],
+		&issuances[fat2.PTickerDASH],
+		&issuances[fat2.PTickerZEC],
+		&issuances[fat2.PTickerDCR],
+		// V4 Additions
+		&issuances[fat2.PTickerAUD],
+		&issuances[fat2.PTickerNZD],
+		&issuances[fat2.PTickerSEK],
+		&issuances[fat2.PTickerNOK],
+		&issuances[fat2.PTickerRUB],
+		&issuances[fat2.PTickerZAR],
+		&issuances[fat2.PTickerTRY],
+		&issuances[fat2.PTickerEOS],
+		&issuances[fat2.PTickerLINK],
+		&issuances[fat2.PTickerATOM],
+		&issuances[fat2.PTickerBAT],
+		&issuances[fat2.PTickerXTZ],
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return issuanceMap, nil
+		}
+		return nil, err
+	}
+	for i := fat2.PTickerInvalid + 1; i < fat2.PTickerMax; i++ {
+		issuanceMap[i] = issuances[i]
+	}
+	return issuanceMap, nil
+}

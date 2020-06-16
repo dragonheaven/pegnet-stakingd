@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"../config"
-	"../exit"
-	"../node"
 	"context"
 	"fmt"
+	"github.com/dragonheaven/pegnet-stakingd/config"
+	"github.com/dragonheaven/pegnet-stakingd/exit"
+	"github.com/dragonheaven/pegnet-stakingd/node"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"

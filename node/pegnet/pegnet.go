@@ -1,10 +1,10 @@
 package pegnet
 
 import (
-	"../../config"
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/dragonheaven/pegnet-stakingd/config"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"

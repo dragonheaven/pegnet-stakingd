@@ -1,9 +1,9 @@
 package srv
 
 import (
-	"../config"
-	"../node"
 	"fmt"
+	"github.com/dragonheaven/pegnet-stakingd/config"
+	"github.com/dragonheaven/pegnet-stakingd/node"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"net/http"

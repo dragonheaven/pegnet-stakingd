@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/pegnet/pegnetd/node/pegnet"
 	"time"
 
 	"github.com/Factom-Asset-Tokens/factom"
@@ -190,36 +189,37 @@ func (d *Pegnetd) SyncBlock(ctx context.Context, tx *sql.Tx, height uint32) erro
 	if gradedBlock != nil {
 		// Todo: Update the DB here
 		fmt.Println("hello, block is graded")
-
-		err = d.Pegnet.InsertGradeBlock(tx, oprEBlock, gradedBlock)
-		if err != nil {
-			return err
-		}
-
-		winners := gradedBlock.Winners()
-		if 0 < len(winners) {
-			// PEG has 3 current pricing phases
-			// 1: Price is 0
-			// 2: Price is determined by equation
-			// 3: Price is determine by miners
-			var phase pegnet.PEGPricingPhase
-			if height < PEGPricingActivation {
-				phase = pegnet.PEGPriceIsZero
-			}
-			if height >= PEGPricingActivation {
-				phase = pegnet.PEGPriceIsEquation
-			}
-			if height >= PEGFreeFloatingPriceActivation {
-				phase = pegnet.PEGPriceIsFloating
-			}
-
-			err = d.Pegnet.InsertRates(tx, height, winners[0].OPR.GetOrderedAssetsUint(), phase)
+		/*
+			err = d.Pegnet.InsertGradeBlock(tx, oprEBlock, gradedBlock)
 			if err != nil {
 				return err
 			}
-		} else {
-			fLog.WithFields(log.Fields{"section": "grading", "reason": "no winners"}).Tracef("block not graded")
-		}
+
+			winners := gradedBlock.Winners()
+			if 0 < len(winners) {
+				// PEG has 3 current pricing phases
+				// 1: Price is 0
+				// 2: Price is determined by equation
+				// 3: Price is determine by miners
+				var phase pegnet.PEGPricingPhase
+				if height < PEGPricingActivation {
+					phase = pegnet.PEGPriceIsZero
+				}
+				if height >= PEGPricingActivation {
+					phase = pegnet.PEGPriceIsEquation
+				}
+				if height >= PEGFreeFloatingPriceActivation {
+					phase = pegnet.PEGPriceIsFloating
+				}
+
+				err = d.Pegnet.InsertRates(tx, height, winners[0].OPR.GetOrderedAssetsUint(), phase)
+				if err != nil {
+					return err
+				}
+			} else {
+				fLog.WithFields(log.Fields{"section": "grading", "reason": "no winners"}).Tracef("block not graded")
+			}
+		*/
 	} else {
 		fLog.WithFields(log.Fields{"section": "grading", "reason": "no graded block"}).Tracef("block not graded")
 	}

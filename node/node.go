@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	log "github.com/sirupsen/logrus"
 
-	"../config"
-	"../node/pegnet"
 	"github.com/Factom-Asset-Tokens/factom"
+	"github.com/dragonheaven/pegnet-stakingd/config"
+	"github.com/dragonheaven/pegnet-stakingd/node/pegnet"
 	"github.com/pegnet/pegnet/modules/grader"
 	"github.com/spf13/viper"
 )

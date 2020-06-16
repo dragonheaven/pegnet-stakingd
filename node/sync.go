@@ -3,7 +3,6 @@ package node
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 
@@ -188,9 +187,6 @@ func (d *Pegnetd) SyncBlock(ctx context.Context, tx *sql.Tx, height uint32) erro
 		return err
 	}
 	if gradedBlock != nil {
-		// Todo: Update the DB here
-		fmt.Println("hello, block is graded")
-
 		err = d.Pegnet.InsertGradeBlock(tx, oprEBlock, gradedBlock)
 		if err != nil {
 			return err
@@ -224,7 +220,7 @@ func (d *Pegnetd) SyncBlock(ctx context.Context, tx *sql.Tx, height uint32) erro
 		fLog.WithFields(log.Fields{"section": "grading", "reason": "no graded block"}).Tracef("block not graded")
 	}
 
-	return errors.New("Skip the SyncBlock")
+	return nil
 }
 
 func multiFetch(eblock *factom.EBlock, c *factom.Client) error {

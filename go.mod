@@ -8,7 +8,6 @@ require (
 	github.com/pegnet/pegnet v0.5.0
 	github.com/pegnet/pegnetd v0.5.1
 	github.com/sirupsen/logrus v1.6.0
-	github.com/spf13/cobra v1.0.0 // indirect
 	github.com/spf13/viper v1.7.0
 )
 
